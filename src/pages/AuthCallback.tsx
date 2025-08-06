@@ -21,8 +21,8 @@ const AuthCallback: React.FC = () => {
 
         if (data.session) {
           console.log('✅ Session found, user:', data.session.user.email);
-          // Redirect to onboarding for new users
-          navigate('/onboarding');
+          // Redirect to dashboard
+          navigate('/dashboard');
         } else {
           console.log('❌ No session found, redirecting to login');
           navigate('/login');

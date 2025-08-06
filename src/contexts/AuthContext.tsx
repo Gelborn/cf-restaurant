@@ -7,8 +7,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   hasRestaurant: boolean | null;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signInWithOtp: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   checkRestaurantStatus: () => Promise<boolean>;
 }
@@ -188,24 +187,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []); // Empty dependency array - only run once
 
-  const signIn = async (email: string, password: string) => {
-    console.log('🔐 Starting sign in process...');
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    console.log('✅ Sign in successful');
-  };
-
-  const signUp = async (email: string, password: string) => {
+  const signInWithOtp = async (email: string) => {
+    console.log('📧 Starting OTP sign in process...');
     const redirectUrl = window.location.origin + '/auth/callback';
     
-    const { error } = await supabase.auth.signUp({ 
-      email, 
-      password,
+    const { error } = await supabase.auth.signInWithOtp({ 
+      email,
       options: {
         emailRedirectTo: redirectUrl
       }
     });
     if (error) throw error;
+    console.log('✅ OTP email sent successfully');
   };
 
   const signOut = async () => {
@@ -220,8 +213,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       session, 
       loading, 
       hasRestaurant, 
-      signIn, 
-      signUp, 
+      signInWithOtp,
       signOut, 
       checkRestaurantStatus 
     }}>

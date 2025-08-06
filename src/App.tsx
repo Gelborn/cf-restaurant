@@ -9,7 +9,6 @@ import Items from './pages/Items';
 import Packages from './pages/Packages';
 import Donations from './pages/Donations';
 import Profile from './pages/Profile';
-import Onboarding from './pages/Onboarding';
 import AuthCallback from './pages/AuthCallback';
 import ConfirmDonation from './pages/ConfirmDonation';
 
@@ -20,7 +19,6 @@ function App() {
         <Router>
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/confirm-donation/:code" element={<ConfirmDonation />} />
             <Route path="/" element={<Navigate to="/login" replace />} />

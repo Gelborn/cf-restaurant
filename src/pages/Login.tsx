@@ -1,60 +1,35 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Heart, Eye, EyeOff, Mail, CheckCircle, Lock, User } from 'lucide-react';
+import { Mail, CheckCircle } from 'lucide-react';
 
 const Login: React.FC = () => {
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [showEmailConfirmation, setShowEmailConfirmation] = useState(false);
+  const [showEmailSent, setShowEmailSent] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: ''
   });
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [emailFocused, setEmailFocused] = useState(false);
-  const [passwordFocused, setPasswordFocused] = useState(false);
   const [emailValid, setEmailValid] = useState(false);
   
-  const { signIn, signUp, checkRestaurantStatus } = useAuth();
+  const { signInWithOtp } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Get redirect path from location state or default to dashboard
-  const from = location.state?.from?.pathname || '/dashboard';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
-    console.log('📝 Form submitted:', { isSignUp, email: formData.email });
+    console.log('📧 Starting OTP signin process...');
 
     try {
-      if (isSignUp) {
-        console.log('📧 Starting signup process...');
-        await signUp(formData.email, formData.password);
-        setShowEmailConfirmation(true);
-      } else {
-        console.log('🔑 Starting signin process...');
-        await signIn(formData.email, formData.password);
-        console.log('✅ SignIn completed, checking restaurant status...');
-        
-        // Check restaurant status and redirect accordingly
-        const hasRestaurant = await checkRestaurantStatus();
-        console.log('🏪 Restaurant status:', hasRestaurant);
-        
-        if (hasRestaurant) {
-          console.log('🔄 Redirecting to dashboard...');
-          navigate('/dashboard', { replace: true });
-        } else {
-          console.log('🔄 Redirecting to onboarding...');
-          navigate('/onboarding', { replace: true });
-        }
-      }
+      await signInWithOtp(formData.email);
+      console.log('✅ OTP sent successfully');
+      setShowEmailSent(true);
     } catch (error: any) {
-      console.error('❌ Auth error:', error);
+      console.error('❌ OTP error:', error);
       setError(error.message || 'Ocorreu um erro. Tente novamente.');
     } finally {
       setLoading(false);
@@ -74,36 +49,35 @@ const Login: React.FC = () => {
     }
   };
 
-  // Email confirmation modal/screen
-  if (showEmailConfirmation) {
+  // Email sent confirmation screen
+  if (showEmailSent) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center p-8">
         <div className="w-full max-w-md text-center">
           <div className="mb-8">
             <CheckCircle size={80} className="mx-auto mb-4 text-green-500" />
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">Confirme seu e-mail</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Verifique seu e-mail</h1>
           </div>
           
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
             <Mail size={48} className="mx-auto mb-4 text-blue-600" />
             <p className="text-lg text-gray-700 mb-2">
-              Enviamos um link de confirmação para:
+              Enviamos um link de acesso para:
             </p>
             <p className="font-semibold text-blue-600 mb-4">{formData.email}</p>
             <p className="text-gray-600">
-              Abra o link no seu e-mail e depois volte aqui para continuar o cadastro.
+              Clique no link do e-mail para fazer login automaticamente.
             </p>
           </div>
 
           <button
             onClick={() => {
-              setShowEmailConfirmation(false);
-              setIsSignUp(false);
-              setFormData({ email: '', password: '' });
+              setShowEmailSent(false);
+              setFormData({ email: '' });
             }}
             className="text-blue-600 hover:text-blue-500 text-sm font-medium"
           >
-            Voltar para o login
+            Tentar com outro e-mail
           </button>
         </div>
       </div>
@@ -156,16 +130,13 @@ const Login: React.FC = () => {
           
           <div className="text-left mb-8">
             <p className="text-sm text-gray-500 mb-2 font-light tracking-wide">
-              {isSignUp ? 'Criar nova conta' : 'Logar na sua conta'}
+              Acesso à plataforma
             </p>
             <h2 className="text-3xl font-light text-gray-900 mb-3 tracking-tight transition-all duration-300">
-              {isSignUp ? 'Cadastre-se' : 'Bem-vindo de volta,'}
+              Bem-vindo de volta
             </h2>
             <p className="text-gray-700 font-light">
-              {isSignUp 
-                ? 'Digite seu email e senha para criar sua conta' 
-                : 'Digite seu email e senha para continuar'
-              }
+              Digite seu email para receber um link de acesso
             </p>
           </div>
 
@@ -209,39 +180,6 @@ const Login: React.FC = () => {
               </div>
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2 tracking-wide">
-                <Lock size={16} className="inline mr-2" />
-                Senha
-              </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  onFocus={() => setPasswordFocused(true)}
-                  onBlur={() => setPasswordFocused(false)}
-                  className={`w-full px-4 py-3 pl-12 pr-12 border rounded-lg focus:outline-none focus:ring-2 focus:border-transparent bg-gray-50 font-light transition-all duration-300 ${
-                    passwordFocused ? 'border-blue-400 focus:ring-blue-500 shadow-lg' : 'border-gray-300'
-                  } bg-white`}
-                  placeholder="Digite sua senha"
-                />
-                <Lock size={18} className={`absolute left-4 top-1/2 transform -translate-y-1/2 transition-colors ${
-                  passwordFocused ? 'text-blue-500' : 'text-gray-400'
-                }`} />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center hover:text-blue-500 transition-colors"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -250,22 +188,15 @@ const Login: React.FC = () => {
               {loading ? (
                 <div className="flex items-center justify-center space-x-2">
                   <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                  <span>Carregando...</span>
+                  <span>Enviando link...</span>
                 </div>
-              ) : (isSignUp ? 'Cadastrar' : 'Entrar')}
+              ) : 'Enviar link de acesso'}
             </button>
           </form>
 
           <div className="mt-6 text-left">
             <p className="text-sm text-gray-600 font-light">
-              {isSignUp ? 'Já tem uma conta?' : 'Não tem uma conta?'}
-              <button
-                type="button"
-                onClick={() => setIsSignUp(!isSignUp)}
-                className="ml-1 text-blue-600 hover:text-blue-500 font-medium transition-colors duration-200 hover:underline"
-              >
-                {isSignUp ? 'Entrar' : 'Cadastre-se'}
-              </button>
+              Você receberá um e-mail com um link seguro para fazer login.
             </p>
           </div>
         </div>
