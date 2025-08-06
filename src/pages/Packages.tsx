@@ -239,11 +239,11 @@ const Packages: React.FC = () => {
       }
 
       console.log('🏪 Restaurant found:', restaurant.id);
-      console.log('📞 Calling liberate_donation function...');
+      console.log('📞 Calling restaurant_create_donation function...');
 
       // Use supabase.functions.invoke instead of fetch
       const { data: responseData, error } = await supabase.functions.invoke(
-        'liberate_donation',
+        'restaurant_create_donation',
         {
           body: { restaurant_id: restaurant.id },
           headers: { Authorization: `Bearer ${session.access_token}` },
@@ -838,7 +838,7 @@ const Packages: React.FC = () => {
               <div className="border-2 border-gray-800 rounded-lg p-6 print:border-black print:rounded-none">
                 {/* Header */}
                 <div className="text-center mb-6 print:mb-4">
-                  <h1 className="text-2xl font-bold text-gray-900 print:text-black">Connecting Food</h1>
+                  <h1 className="text-2xl font-bold text-gray-900 print:text-black">Arcos Dourados</h1>
                   <p className="text-gray-600 print:text-black">Etiqueta do Pacote</p>
                 </div>
                 

@@ -82,7 +82,7 @@ const Donations: React.FC = () => {
     
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/release_donation`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/restaurant_release_donation`,
         {
           method: 'POST',
           headers: {

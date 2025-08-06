@@ -46,11 +46,10 @@ const ConfirmDonation: React.FC = () => {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/get_donation_details`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/osc_get_donation_details`,
         {
           method: 'POST',
           headers: {
-            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
             'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
             'Content-Type': 'application/json',
           },
@@ -81,11 +80,10 @@ const ConfirmDonation: React.FC = () => {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/accept_donation`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/osc_accept_donation`,
         {
           method: 'POST',
           headers: {
-            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
             'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
             'Content-Type': 'application/json',
           },
@@ -117,11 +115,10 @@ const ConfirmDonation: React.FC = () => {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/deny_donation`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/osc_deny_donation`,
         {
           method: 'POST',
           headers: {
-            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
             'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
             'Content-Type': 'application/json',
           },
@@ -338,10 +335,6 @@ const ConfirmDonation: React.FC = () => {
                         <div className="bg-gray-50 rounded p-3">
                           <p className="text-gray-600 mb-1">Criado em</p>
                           <p className="font-semibold text-gray-900">{new Date(pkg.created_at).toLocaleDateString('pt-BR')}</p>
-                        </div>
-                        <div className="bg-gray-50 rounded p-3">
-                          <p className="text-gray-600 mb-1">Vence em</p>
-                          <p className="font-semibold text-gray-900">{formatTimeRemaining(pkg.expires_at)}</p>
                         </div>
                       </div>
                     </div>
