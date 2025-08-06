@@ -191,12 +191,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('📧 Starting OTP sign in process...');
     const redirectUrl = window.location.origin + '/auth/callback';
     
-    const { error } = await supabase.auth.signInWithOtp({ 
+    const { data, error } = await supabase.auth.signInWithOtp({ 
       email,
       options: {
         emailRedirectTo: redirectUrl
       }
     });
+    
+    console.log('📧 OTP response:', { data, error: error?.message });
+    
     if (error) throw error;
     console.log('✅ OTP email sent successfully');
   };

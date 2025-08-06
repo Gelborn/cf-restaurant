@@ -30,7 +30,18 @@ const Login: React.FC = () => {
       setShowEmailSent(true);
     } catch (error: any) {
       console.error('❌ OTP error:', error);
-      setError(error.message || 'Ocorreu um erro. Tente novamente.');
+      
+      // Handle specific error cases
+      if (error.message?.includes('Signups not allowed') || 
+          error.message?.includes('signup') || 
+          error.message?.includes('User not found') ||
+          error.message?.includes('Invalid login credentials')) {
+        setError('Este e-mail não está cadastrado no sistema. Entre em contato com o suporte para obter acesso.');
+      } else if (error.message?.includes('Email rate limit exceeded')) {
+        setError('Muitas tentativas de envio. Aguarde alguns minutos antes de tentar novamente.');
+      } else {
+        setError(error.message || 'Ocorreu um erro. Tente novamente.');
+      }
     } finally {
       setLoading(false);
     }
