@@ -261,8 +261,8 @@ const Packages: React.FC = () => {
           case 'RESTAURANT_NOT_FOUND':
             showError('Restaurante não encontrado', 'Verifique suas informações de cadastro.');
             return;
-          case 'NO_OSC_AVAILABLE':
-            showError('Nenhuma OSC disponível', 'Não há organizações sociais próximas no momento.');
+          case 'NO_PARTNERSHIPS':
+            showError('Nenhuma OSC parceira', 'Não há organizações sociais parceiras no momento. Entre em contato com o suporte.');
             return;
           case 'INTERNAL_ERROR':
           default:
