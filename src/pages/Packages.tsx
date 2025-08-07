@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, Gift, X, Tag, Printer, Upload, Construction } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Gift, X, Tag, Printer, Upload, Construction, AlertCircle, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -23,12 +23,19 @@ const Packages: React.FC = () => {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [donationResult, setDonationResult] = useState<{ packagesCount: number } | null>(null);
+  const [toast, setToast] = useState<{ type: 'success' | 'error'; title: string; message: string } | null>(null);
   const [formData, setFormData] = useState({
     item_id: '',
     quantity: 1 as number
   });
   const [editQuantity, setEditQuantity] = useState(1);
   const { session } = useAuth();
+
+  // Toast functions
+  const showToast = (type: 'success' | 'error', title: string, message: string) => {
+    setToast({ type, title, message });
+    setTimeout(() => setToast(null), 5000);
+  };
 
   useEffect(() => {
     fetchPackages();
@@ -256,14 +263,14 @@ const Packages: React.FC = () => {
         // Handle specific error codes
         switch (status) {
           case 409:
-            alert('Erro na doação: Sem pacotes em estoque. Adicione pacotes antes de tentar doar.');
+            showToast('error', 'Sem pacotes em estoque', 'Adicione pacotes antes de tentar doar.');
             return;
           case 404:
-            alert('Erro na doação: Nenhuma OSC parceira encontrada. Não há organizações sociais parceiras no momento. Entre em contato com o suporte.');
+            showToast('error', 'Nenhuma OSC parceira encontrada', 'Não há organizações sociais parceiras no momento. Entre em contato com o suporte.');
             return;
           case 500:
           default:
-            alert('Erro na doação: Erro interno do servidor. Algo deu errado, tente novamente mais tarde.');
+            showToast('error', 'Erro interno do servidor', 'Algo deu errado, tente novamente mais tarde.');
             return;
         }
       }
@@ -283,7 +290,7 @@ const Packages: React.FC = () => {
       });
     } catch (error) {
       console.error('Error donating package:', error);
-      alert('Erro na doação: Não foi possível enviar os pacotes. Tente novamente.');
+      showToast('error', 'Erro na doação', 'Não foi possível enviar os pacotes. Tente novamente.');
     } finally {
       setActionLoading(null);
     }
@@ -671,7 +678,7 @@ const Packages: React.FC = () => {
 
       {/* Donate Confirmation Modal */}
       {showDonateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Confirmar Doação</h2>
@@ -904,6 +911,39 @@ const Packages: React.FC = () => {
             >
               Fechar
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right duration-300">
+          <div className={`max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden ${
+            toast.type === 'error' ? 'border-l-4 border-red-500' : 'border-l-4 border-green-500'
+          }`}>
+            <div className="p-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  {toast.type === 'error' ? (
+                    <AlertCircle className="h-6 w-6 text-red-400" />
+                  ) : (
+                    <CheckCircle className="h-6 w-6 text-green-400" />
+                  )}
+                </div>
+                <div className="ml-3 w-0 flex-1 pt-0.5">
+                  <p className="text-sm font-medium text-gray-900">{toast.title}</p>
+                  <p className="mt-1 text-sm text-gray-500">{toast.message}</p>
+                </div>
+                <div className="ml-4 flex-shrink-0 flex">
+                  <button
+                    className="bg-white rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none"
+                    onClick={() => setToast(null)}
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
