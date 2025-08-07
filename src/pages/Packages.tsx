@@ -253,18 +253,17 @@ const Packages: React.FC = () => {
       console.log('📥 Function response:', { responseData, error });
 
       if (error) {
+        const status = error.context.status
+        console.log('🔍 Status:', status);
         // Handle specific error codes
-        switch (error.context?.code) {
-          case 'NO_PACKAGES_IN_STOCK':
+        switch (status) {
+          case 409:
             showError('Sem pacotes em estoque', 'Adicione pacotes antes de tentar doar.');
             return;
-          case 'RESTAURANT_NOT_FOUND':
-            showError('Restaurante não encontrado', 'Verifique suas informações de cadastro.');
-            return;
-          case 'NO_PARTNERSHIPS':
+          case 404:
             showError('Nenhuma OSC parceira', 'Não há organizações sociais parceiras no momento. Entre em contato com o suporte.');
             return;
-          case 'INTERNAL_ERROR':
+          case 500:
           default:
             showError('Erro interno', 'Algo deu errado, tente novamente mais tarde.');
             return;
