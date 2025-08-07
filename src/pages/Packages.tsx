@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Package, Item } from '../types';
-import { useToast } from '../hooks/useToast';
 
 const Packages: React.FC = () => {
   const navigate = useNavigate();
@@ -30,7 +29,6 @@ const Packages: React.FC = () => {
   });
   const [editQuantity, setEditQuantity] = useState(1);
   const { session } = useAuth();
-  const { showSuccess, showError } = useToast();
 
   useEffect(() => {
     fetchPackages();
@@ -152,11 +150,11 @@ const Packages: React.FC = () => {
         setCreatedPackage(newPackage);
         setShowSuccessCreateModal(true);
       } else {
-        showSuccess('Pacote criado!', 'O novo pacote foi adicionado com sucesso.');
+        console.log('Package created successfully');
       }
     } catch (error) {
       console.error('Error creating package:', error);
-      showError('Erro ao criar pacote', 'Tente novamente em alguns instantes.');
+      alert('Erro ao criar pacote. Tente novamente em alguns instantes.');
     } finally {
       setActionLoading(null);
     }
@@ -180,10 +178,10 @@ const Packages: React.FC = () => {
       setShowEditModal(false);
       setSelectedPackage(null);
       fetchPackages();
-      showSuccess('Pacote atualizado!', 'A quantidade foi alterada com sucesso.');
+      alert('Pacote atualizado! A quantidade foi alterada com sucesso.');
     } catch (error) {
       console.error('Error updating package:', error);
-      showError('Erro ao atualizar pacote', 'Tente novamente em alguns instantes.');
+      alert('Erro ao atualizar pacote. Tente novamente em alguns instantes.');
     } finally {
       setActionLoading(null);
     }
@@ -205,10 +203,10 @@ const Packages: React.FC = () => {
       setShowDeleteModal(false);
       setSelectedPackage(null);
       fetchPackages();
-      showSuccess('Pacote removido!', 'O pacote foi excluído com sucesso.');
+      alert('Pacote removido! O pacote foi excluído com sucesso.');
     } catch (error) {
       console.error('Error deleting package:', error);
-      showError('Erro ao remover pacote', 'Tente novamente em alguns instantes.');
+      alert('Erro ao remover pacote. Tente novamente em alguns instantes.');
     } finally {
       setActionLoading(null);
     }
@@ -258,14 +256,14 @@ const Packages: React.FC = () => {
         // Handle specific error codes
         switch (status) {
           case 409:
-            showError('Erro na doação', 'Sem pacotes em estoque. Adicione pacotes antes de tentar doar.');
+            alert('Erro na doação: Sem pacotes em estoque. Adicione pacotes antes de tentar doar.');
             return;
           case 404:
-            showError('Erro na doação', 'Nenhuma OSC parceira encontrada. Não há organizações sociais parceiras no momento. Entre em contato com o suporte.');
+            alert('Erro na doação: Nenhuma OSC parceira encontrada. Não há organizações sociais parceiras no momento. Entre em contato com o suporte.');
             return;
           case 500:
           default:
-            showError('Erro na doação', 'Erro interno do servidor. Algo deu errado, tente novamente mais tarde.');
+            alert('Erro na doação: Erro interno do servidor. Algo deu errado, tente novamente mais tarde.');
             return;
         }
       }
@@ -285,7 +283,7 @@ const Packages: React.FC = () => {
       });
     } catch (error) {
       console.error('Error donating package:', error);
-      showError('Erro na doação', 'Não foi possível enviar os pacotes. Tente novamente.');
+      alert('Erro na doação: Não foi possível enviar os pacotes. Tente novamente.');
     } finally {
       setActionLoading(null);
     }
@@ -673,7 +671,7 @@ const Packages: React.FC = () => {
 
       {/* Donate Confirmation Modal */}
       {showDonateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Confirmar Doação</h2>
