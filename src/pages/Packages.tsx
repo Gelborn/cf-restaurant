@@ -258,12 +258,15 @@ const Packages: React.FC = () => {
         // Handle specific error codes
         switch (status) {
           case 409:
-            throw new Error('Sem pacotes em estoque. Adicione pacotes antes de tentar doar.');
+            showError('Erro na doação', 'Sem pacotes em estoque. Adicione pacotes antes de tentar doar.');
+            return;
           case 404:
-            throw new Error('Nenhuma OSC parceira encontrada. Não há organizações sociais parceiras no momento. Entre em contato com o suporte.');
+            showError('Erro na doação', 'Nenhuma OSC parceira encontrada. Não há organizações sociais parceiras no momento. Entre em contato com o suporte.');
+            return;
           case 500:
           default:
-            throw new Error('Erro interno do servidor. Algo deu errado, tente novamente mais tarde.');
+            showError('Erro na doação', 'Erro interno do servidor. Algo deu errado, tente novamente mais tarde.');
+            return;
         }
       }
 
@@ -669,8 +672,8 @@ const Packages: React.FC = () => {
       )}
 
       {/* Donate Confirmation Modal */}
-      {showDonateModal && selectedPackage && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      {showDonateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Confirmar Doação</h2>
