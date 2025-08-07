@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { Plus, Search, Edit2, Trash2, Gift, X, Tag, Printer, Upload, Construction, AlertCircle, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -501,7 +502,7 @@ const Packages: React.FC = () => {
       )}
 
       {/* New Package Modal */}
-      {showModal && (
+      {showModal && ReactDOM.createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
@@ -567,10 +568,10 @@ const Packages: React.FC = () => {
             </form>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Edit Package Modal */}
-      {showEditModal && selectedPackage && (
+      {showEditModal && selectedPackage && ReactDOM.createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
@@ -631,10 +632,10 @@ const Packages: React.FC = () => {
             </form>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && selectedPackage && (
+      {showDeleteModal && selectedPackage && ReactDOM.createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
@@ -674,10 +675,10 @@ const Packages: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Donate Confirmation Modal */}
-      {showDonateModal && (
+      {showDonateModal && ReactDOM.createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
@@ -717,10 +718,10 @@ const Packages: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Success Modal */}
-      {showSuccessModal && donationResult && (
+      {showSuccessModal && donationResult && ReactDOM.createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="text-center">
@@ -766,10 +767,10 @@ const Packages: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Success Create Modal */}
-      {showSuccessCreateModal && createdPackage && (
+      {showSuccessCreateModal && createdPackage && ReactDOM.createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="text-center">
@@ -811,10 +812,10 @@ const Packages: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Label Modal */}
-      {showLabelModal && selectedPackage && (
+      {showLabelModal && selectedPackage && ReactDOM.createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg w-full max-w-2xl">
             {/* Modal Header */}
@@ -891,10 +892,10 @@ const Packages: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Coming Soon Modal */}
-      {showComingSoonModal && (
+      {showComingSoonModal && ReactDOM.createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md text-center">
             <div className="mb-4">
@@ -913,7 +914,7 @@ const Packages: React.FC = () => {
             </button>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Toast Notification */}
       {toast && (
