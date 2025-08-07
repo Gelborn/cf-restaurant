@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { Search, Filter, Unlock, X, Package, Calendar, Clock, CheckCircle, XCircle, AlertCircle, FileText, Construction } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -398,7 +399,7 @@ const Donations: React.FC = () => {
       )}
 
       {/* Release Donation Modal */}
-      {showReleaseModal && (
+      {showReleaseModal && ReactDOM.createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
@@ -456,10 +457,10 @@ const Donations: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Success Modal */}
-      {showSuccessModal && releaseResult && (
+      {showSuccessModal && releaseResult && ReactDOM.createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-8 w-full max-w-4xl max-h-[80vh] overflow-y-auto">
             <div className="text-center mb-6">
@@ -516,10 +517,10 @@ const Donations: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Coming Soon Modal */}
-      {showComingSoonModal && (
+      {showComingSoonModal && ReactDOM.createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md text-center">
             <div className="mb-4">
@@ -538,7 +539,7 @@ const Donations: React.FC = () => {
             </button>
           </div>
         </div>
-      )}
+      , document.body)}
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
 import { Plus, Edit2, Trash2, Search, Upload, Construction } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -278,7 +279,7 @@ const Items: React.FC = () => {
       </div>
 
       {/* Modal */}
-      {showModal && (
+      {showModal && ReactDOM.createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <h2 className="text-xl font-bold mb-4">
@@ -376,10 +377,10 @@ const Items: React.FC = () => {
             </form>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Success Modal */}
-      {showSuccessModal && createdItem && (
+      {showSuccessModal && createdItem && ReactDOM.createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="text-center">
@@ -413,10 +414,10 @@ const Items: React.FC = () => {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
 
       {/* Coming Soon Modal */}
-      {showComingSoonModal && (
+      {showComingSoonModal && ReactDOM.createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md text-center">
             <div className="mb-4">
@@ -435,7 +436,7 @@ const Items: React.FC = () => {
             </button>
           </div>
         </div>
-      )}
+      , document.body)}
     </div>
   );
 };
