@@ -217,24 +217,24 @@ const Packages: React.FC = () => {
   const handleDonate = async () => {
     if (!session?.access_token || !session?.user?.id) return;
 
-    console.log('🚀 Starting donation process...');
     setActionLoading('donate');
-
     try {
-      const { data: restaurant } = await supabase
+      // 1) Pega o restaurante do usuário
+      const { data: restaurant, error: restErr } = await supabase
         .from('restaurants')
         .select('id')
         .eq('user_id', session.user.id)
         .single();
-
-      if (!restaurant) {
-        throw new Error('Restaurante não encontrado');
+      if (restErr || !restaurant) {
+        showError('Erro na doação', 'Restaurante não encontrado');
+        return;
       }
 
-      console.log('🏪 Restaurant found:', restaurant.id);
-      console.log('📞 Calling restaurant_create_donation function...');
-
-      const { data: responseData } = await supabase.functions.invoke(
+      // 2) Invoca a função
+      const {
+        data: donationData,
+        error: donationError,
+      } = await supabase.functions.invoke<{ packages_count: number }>(
         'restaurant_create_donation',
         {
           body: { restaurant_id: restaurant.id },
@@ -242,32 +242,43 @@ const Packages: React.FC = () => {
         }
       );
 
-      console.log('✅ Donation successful:', responseData);
+      // 3) Tratar erro retornado
+      if (donationError) {
+        if (donationError instanceof FunctionsHttpError) {
+          const status = donationError.context.status;
+          console.log('cf_create_donation HTTP status:', status);
+          switch (status) {
+            case 409:
+              showError('Sem pacotes em estoque', 'Adicione pacotes antes de tentar doar.');
+              break;
+            case 404:
+              showError('Nenhuma OSC parceira', 'Não há organizações sociais parceiras no momento.');
+              break;
+            default:
+              showError('Erro interno', 'Algo deu errado, tente novamente mais tarde.');
+          }
+        } else if (
+          donationError instanceof FunctionsRelayError ||
+          donationError instanceof FunctionsFetchError
+        ) {
+          showError('Erro de conexão', 'Não foi possível alcançar o servidor.');
+        } else {
+          showError('Erro na doação', donationError.message);
+        }
+        return;
+      }
+
+      // 4) Sucesso (2xx)
+      console.log('✅ Donation successful:', donationData);
       await fetchPackages();
       setShowDonateModal(false);
       setSelectedPackage(null);
       setShowSuccessModal(true);
-      setDonationResult({ packagesCount: responseData?.packages_count || 0 });
+      setDonationResult({ packagesCount: donationData?.packages_count || 0 });
+
     } catch (err: any) {
-      if (err instanceof FunctionsHttpError) {
-        const status = err.context.status;
-        console.log('cf_create_donation HTTP status:', status);
-        switch (status) {
-          case 409:
-            showError('Sem pacotes em estoque', 'Adicione pacotes antes de tentar doar.');
-            break;
-          case 404:
-            showError('Nenhuma OSC parceira', 'Não há organizações sociais parceiras no momento.');
-            break;
-          default:
-            showError('Erro interno', 'Algo deu errado, tente novamente mais tarde.');
-        }
-      } else if (err instanceof FunctionsRelayError || err instanceof FunctionsFetchError) {
-        showError('Erro de conexão', 'Não foi possível alcançar o servidor.');
-      } else {
-        console.error('Unexpected donation error:', err);
-        showError('Erro na doação', err.message || 'Não foi possível enviar os pacotes.');
-      }
+      console.error('Unexpected donation error:', err);
+      showError('Erro na doação', err.message || 'Não foi possível enviar os pacotes.');
     } finally {
       setActionLoading(null);
     }
