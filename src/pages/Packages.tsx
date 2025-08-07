@@ -5,22 +5,12 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Package, Item } from '../types';
 import { useToast } from '../hooks/useToast';
-import {
-  FunctionsHttpError,
-  FunctionsRelayError,
-  FunctionsFetchError,
-} from '@supabase/supabase-js';
 
 const Packages: React.FC = () => {
   const navigate = useNavigate();
-  const { session } = useAuth();
-  const { showSuccess, showError } = useToast();
-
   const [packages, setPackages] = useState<Package[]>([]);
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
-
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -28,15 +18,19 @@ const Packages: React.FC = () => {
   const [showSuccessCreateModal, setShowSuccessCreateModal] = useState(false);
   const [showLabelModal, setShowLabelModal] = useState(false);
   const [showComingSoonModal, setShowComingSoonModal] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-
   const [createdPackage, setCreatedPackage] = useState<Package | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [donationResult, setDonationResult] = useState<{ packagesCount: number } | null>(null);
-
-  const [formData, setFormData] = useState({ item_id: '', quantity: 1 });
+  const [formData, setFormData] = useState({
+    item_id: '',
+    quantity: 1 as number
+  });
   const [editQuantity, setEditQuantity] = useState(1);
+  const { session } = useAuth();
+  const { showSuccess, showError } = useToast();
 
   useEffect(() => {
     fetchPackages();
@@ -45,15 +39,16 @@ const Packages: React.FC = () => {
 
   const fetchPackages = async () => {
     if (!session?.user?.id) return;
-
+    
     try {
-      const { data: restaurant, error: restError } = await supabase
+      const { data: restaurant } = await supabase
         .from('restaurants')
         .select('id')
-        .eq('user_id', session.user.id)
+        .eq('user_id', session?.user.id)
         .single();
-      if (restError || !restaurant) {
-        console.error('Restaurant not found for user', restError);
+
+      if (!restaurant) {
+        console.error('Restaurant not found for user');
         return;
       }
 
@@ -81,15 +76,16 @@ const Packages: React.FC = () => {
 
   const fetchItems = async () => {
     if (!session?.user?.id) return;
-
+    
     try {
-      const { data: restaurant, error: restError } = await supabase
+      const { data: restaurant } = await supabase
         .from('restaurants')
         .select('id')
-        .eq('user_id', session.user.id)
+        .eq('user_id', session?.user.id)
         .single();
-      if (restError || !restaurant) {
-        console.error('Restaurant not found for user', restError);
+
+      if (!restaurant) {
+        console.error('Restaurant not found for user');
         return;
       }
 
@@ -107,14 +103,14 @@ const Packages: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    
     if (!session?.user?.id) {
       console.error('No authenticated user');
       return;
     }
-
+    
     setActionLoading('create');
-
+    
     try {
       const selectedItem = items.find(item => item.id === formData.item_id);
       if (!selectedItem) {
@@ -123,6 +119,7 @@ const Packages: React.FC = () => {
 
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + selectedItem.validity_days);
+
       const labelCode = generateLabelCode();
 
       const { error } = await supabase
@@ -136,6 +133,7 @@ const Packages: React.FC = () => {
 
       if (error) throw error;
 
+      // Get the created package for the success modal
       const { data: newPackage } = await supabase
         .from('packages')
         .select(`
@@ -149,7 +147,7 @@ const Packages: React.FC = () => {
       setShowModal(false);
       setFormData({ item_id: '', quantity: 1 });
       fetchPackages();
-
+      
       if (newPackage) {
         setCreatedPackage(newPackage);
         setShowSuccessCreateModal(true);
@@ -166,10 +164,11 @@ const Packages: React.FC = () => {
 
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    
     if (!selectedPackage) return;
+    
     setActionLoading('edit');
-
+    
     try {
       const { error } = await supabase
         .from('packages')
@@ -192,8 +191,9 @@ const Packages: React.FC = () => {
 
   const handleDelete = async () => {
     if (!selectedPackage) return;
+    
     setActionLoading('delete');
-
+    
     try {
       const { error } = await supabase
         .from('packages')
@@ -216,25 +216,33 @@ const Packages: React.FC = () => {
 
   const handleDonate = async () => {
     if (!session?.access_token || !session?.user?.id) return;
-
+    
+    console.log('🚀 Starting donation process...');
+    console.log('📋 Session info:', {
+      hasAccessToken: !!session.access_token,
+      userId: session.user.id,
+      userEmail: session.user.email
+    });
+    
     setActionLoading('donate');
+    
     try {
-      // 1) Pega o restaurante do usuário
-      const { data: restaurant, error: restErr } = await supabase
+      // Get restaurant ID first
+      const { data: restaurant } = await supabase
         .from('restaurants')
         .select('id')
         .eq('user_id', session.user.id)
         .single();
-      if (restErr || !restaurant) {
-        showError('Erro na doação', 'Restaurante não encontrado');
-        return;
+
+      if (!restaurant) {
+        throw new Error('Restaurante não encontrado');
       }
 
-      // 2) Invoca a função
-      const {
-        data: donationData,
-        error: donationError,
-      } = await supabase.functions.invoke<{ packages_count: number }>(
+      console.log('🏪 Restaurant found:', restaurant.id);
+      console.log('📞 Calling restaurant_create_donation function...');
+
+      // Use supabase.functions.invoke instead of fetch
+      const { data: responseData, error } = await supabase.functions.invoke(
         'restaurant_create_donation',
         {
           body: { restaurant_id: restaurant.id },
@@ -242,43 +250,42 @@ const Packages: React.FC = () => {
         }
       );
 
-      // 3) Tratar erro retornado
-      if (donationError) {
-        if (donationError instanceof FunctionsHttpError) {
-          const status = donationError.context.status;
-          console.log('cf_create_donation HTTP status:', status);
-          switch (status) {
-            case 409:
-              showError('Sem pacotes em estoque', 'Adicione pacotes antes de tentar doar.');
-              break;
-            case 404:
-              showError('Nenhuma OSC parceira', 'Não há organizações sociais parceiras no momento.');
-              break;
-            default:
-              showError('Erro interno', 'Algo deu errado, tente novamente mais tarde.');
-          }
-        } else if (
-          donationError instanceof FunctionsRelayError ||
-          donationError instanceof FunctionsFetchError
-        ) {
-          showError('Erro de conexão', 'Não foi possível alcançar o servidor.');
-        } else {
-          showError('Erro na doação', donationError.message);
+      console.log('📥 Function response:', { responseData, error });
+
+      if (error) {
+        const status = error.context.status
+        console.log('🔍 Status:', status);
+        // Handle specific error codes
+        switch (status) {
+          case 409:
+            showError('Sem pacotes em estoque', 'Adicione pacotes antes de tentar doar.');
+            return;
+          case 404:
+            showError('Nenhuma OSC parceira', 'Não há organizações sociais parceiras no momento. Entre em contato com o suporte.');
+            return;
+          case 500:
+          default:
+            showError('Erro interno', 'Algo deu errado, tente novamente mais tarde.');
+            return;
         }
-        return;
       }
 
-      // 4) Sucesso (2xx)
-      console.log('✅ Donation successful:', donationData);
+      console.log('✅ Donation successful:', responseData);
+      
+      // Refresh packages from database
       await fetchPackages();
+
       setShowDonateModal(false);
       setSelectedPackage(null);
+      
+      // Show success modal
       setShowSuccessModal(true);
-      setDonationResult({ packagesCount: donationData?.packages_count || 0 });
-
-    } catch (err: any) {
-      console.error('Unexpected donation error:', err);
-      showError('Erro na doação', err.message || 'Não foi possível enviar os pacotes.');
+      setDonationResult({
+        packagesCount: responseData.packages_count || 0
+      });
+    } catch (error) {
+      console.error('Error donating package:', error);
+      showError('Erro na doação', 'Não foi possível enviar os pacotes. Tente novamente.');
     } finally {
       setActionLoading(null);
     }
