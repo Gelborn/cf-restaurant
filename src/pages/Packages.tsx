@@ -678,7 +678,7 @@ const Packages: React.FC = () => {
 
       {/* Donate Confirmation Modal */}
       {showDonateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4" style={{ zIndex: 9999 }}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Confirmar Doação</h2>
@@ -917,8 +917,8 @@ const Packages: React.FC = () => {
 
       {/* Toast Notification */}
       {toast && (
-        <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right duration-300">
-          <div className={`max-w-sm w-full bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden ${
+        <div className="fixed top-4 right-4 z-[9999] animate-in slide-in-from-right duration-300">
+          <div className={`w-80 bg-white shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden ${
             toast.type === 'error' ? 'border-l-4 border-red-500' : 'border-l-4 border-green-500'
           }`}>
             <div className="p-4">
@@ -930,7 +930,7 @@ const Packages: React.FC = () => {
                     <CheckCircle className="h-6 w-6 text-green-400" />
                   )}
                 </div>
-                <div className="ml-3 w-0 flex-1 pt-0.5">
+                <div className="ml-3 flex-1 pt-0.5">
                   <p className="text-sm font-medium text-gray-900">{toast.title}</p>
                   <p className="mt-1 text-sm text-gray-500">{toast.message}</p>
                 </div>
