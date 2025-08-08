@@ -125,6 +125,17 @@ const Packages: React.FC = () => {
         throw new Error('Item not found');
       }
 
+      // Get restaurant ID
+      const { data: restaurant } = await supabase
+        .from('restaurants')
+        .select('id')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (!restaurant) {
+        throw new Error('Restaurant not found');
+      }
+
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + selectedItem.validity_days);
 
@@ -133,6 +144,7 @@ const Packages: React.FC = () => {
       const { error } = await supabase
         .from('packages')
         .insert({
+          restaurant_id: restaurant.id,
           item_id: formData.item_id,
           quantity: formData.quantity,
           total_kg: formData.total_kg,
