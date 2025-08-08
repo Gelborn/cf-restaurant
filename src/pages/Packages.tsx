@@ -27,9 +27,11 @@ const Packages: React.FC = () => {
   const [toast, setToast] = useState<{ type: 'success' | 'error'; title: string; message: string } | null>(null);
   const [formData, setFormData] = useState({
     item_id: '',
-    quantity: 1 as number
+    quantity: 1 as number,
+    total_kg: 0 as number
   });
   const [editQuantity, setEditQuantity] = useState(1);
+  const [editTotalKg, setEditTotalKg] = useState(0);
   const { session } = useAuth();
 
   // Toast functions
@@ -133,6 +135,7 @@ const Packages: React.FC = () => {
         .insert({
           item_id: formData.item_id,
           quantity: formData.quantity,
+          total_kg: formData.total_kg,
           expires_at: expiresAt.toISOString(),
           label_code: labelCode
         });
@@ -151,7 +154,7 @@ const Packages: React.FC = () => {
         .single();
 
       setShowModal(false);
-      setFormData({ item_id: '', quantity: 1 });
+      setFormData({ item_id: '', quantity: 1, total_kg: 0 });
       fetchPackages();
       
       if (newPackage) {
@@ -178,7 +181,10 @@ const Packages: React.FC = () => {
     try {
       const { error } = await supabase
         .from('packages')
-        .update({ quantity: editQuantity })
+        .update({ 
+          quantity: editQuantity,
+          total_kg: editTotalKg
+        })
         .eq('id', selectedPackage.id);
 
       if (error) throw error;
@@ -300,6 +306,7 @@ const Packages: React.FC = () => {
   const openEditModal = (pkg: Package) => {
     setSelectedPackage(pkg);
     setEditQuantity(pkg.quantity);
+    setEditTotalKg(pkg.total_kg || 0);
     setShowEditModal(true);
   };
 
@@ -353,6 +360,32 @@ const Packages: React.FC = () => {
   );
 
   const selectedItem = items.find(item => item.id === formData.item_id);
+
+  // Calculate total_kg when quantity or item changes
+  React.useEffect(() => {
+    if (selectedItem && formData.quantity > 0) {
+      let totalKg = 0;
+      if (selectedItem.unit === 'kg') {
+        totalKg = formData.quantity;
+      } else if (selectedItem.unit === 'unit' && selectedItem.unit_to_kg) {
+        totalKg = formData.quantity * selectedItem.unit_to_kg;
+      }
+      setFormData(prev => ({ ...prev, total_kg: totalKg }));
+    }
+  }, [formData.quantity, selectedItem]);
+
+  // Calculate total_kg for edit modal
+  React.useEffect(() => {
+    if (selectedPackage?.item && editQuantity > 0) {
+      let totalKg = 0;
+      if (selectedPackage.item.unit === 'kg') {
+        totalKg = editQuantity;
+      } else if (selectedPackage.item.unit === 'unit' && selectedPackage.item.unit_to_kg) {
+        totalKg = editQuantity * selectedPackage.item.unit_to_kg;
+      }
+      setEditTotalKg(totalKg);
+    }
+  }, [editQuantity, selectedPackage]);
 
   if (loading) {
     return (
@@ -441,6 +474,10 @@ const Packages: React.FC = () => {
                 <div className="flex justify-between">
                   <span>Quantidade:</span>
                   <span className="font-medium">{pkg.quantity} {pkg.item?.unit}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Peso total:</span>
+                  <span className="font-medium">{pkg.total_kg?.toFixed(3) || '0.000'} kg</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Categoria:</span>
@@ -545,8 +582,23 @@ const Packages: React.FC = () => {
                   value={formData.quantity}
                   onChange={(e) => setFormData({...formData, quantity: selectedItem?.unit === 'kg' ? parseFloat(e.target.value) : parseInt(e.target.value)})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Ex: 0.500"
                 />
               </div>
+
+              {selectedItem && formData.quantity > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Peso total do pacote
+                  </label>
+                  <input
+                    type="text"
+                    value={`${formData.total_kg.toFixed(3)} kg`}
+                    disabled
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-700"
+                  />
+                </div>
+              )}
 
               <div className="flex justify-end space-x-3">
                 <button
@@ -609,6 +661,18 @@ const Packages: React.FC = () => {
                   value={editQuantity}
                   onChange={(e) => setEditQuantity(selectedPackage.item?.unit === 'kg' ? parseFloat(e.target.value) : parseInt(e.target.value))}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Peso total do pacote
+                </label>
+                <input
+                  type="text"
+                  value={`${editTotalKg.toFixed(3)} kg`}
+                  disabled
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-700"
                 />
               </div>
 
@@ -864,6 +928,10 @@ const Packages: React.FC = () => {
                     <div>
                       <p className="text-sm text-gray-600 print:text-black font-medium">Quantidade:</p>
                       <p className="text-lg font-semibold print:text-black">{selectedPackage.quantity} {selectedPackage.item?.unit}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 print:text-black font-medium">Peso Total:</p>
+                      <p className="text-lg font-semibold print:text-black">{selectedPackage.total_kg?.toFixed(3) || '0.000'} kg</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600 print:text-black font-medium">Data de Criação:</p>
