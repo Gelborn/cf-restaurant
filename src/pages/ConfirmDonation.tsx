@@ -15,6 +15,7 @@ interface DonationPackage {
   status: string;
   created_at: string;
   item: DonationItem;
+  total_kg?: number;
 }
 
 interface DonationDetails {
@@ -333,8 +334,8 @@ const ConfirmDonation: React.FC = () => {
                           <p className="font-semibold text-gray-900">{pkg.quantity} {pkg.item.unit}</p>
                         </div>
                         <div className="bg-gray-50 rounded p-3">
-                          <p className="text-gray-600 mb-1">Criado em</p>
-                          <p className="font-semibold text-gray-900">{new Date(pkg.created_at).toLocaleDateString('pt-BR')}</p>
+                          <p className="text-gray-600 mb-1">Peso Total</p>
+                          <p className="font-semibold text-gray-900">{pkg.total_kg?.toFixed(3) || '0.000'} kg</p>
                         </div>
                       </div>
                     </div>
