@@ -23,6 +23,7 @@ export interface Package {
   id: string;
   item_id: string;
   quantity: number;
+  total_kg: number;
   status: 'in_stock' | 'awaiting_donation' | 'donated';
   created_at: string;
   expires_at: string;
