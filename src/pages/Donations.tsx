@@ -33,6 +33,18 @@ const Donations: React.FC = () => {
     if (!session?.user?.id) return;
     
     try {
+      // Get restaurant ID first
+      const { data: restaurant } = await supabase
+        .from('restaurants')
+        .select('id')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (!restaurant) {
+        console.error('Restaurant not found for user');
+        return;
+      }
+
       const { data, error } = await supabase
         .from('donations')
         .select(`
@@ -45,7 +57,7 @@ const Donations: React.FC = () => {
             )
           )
         `)
-        .eq('packages.package.restaurant_id', session.user.id)
+        .eq('restaurant_id', restaurant.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -54,7 +66,7 @@ const Donations: React.FC = () => {
       const transformedData = (data || []).map(donation => ({
         ...donation,
         osc_name: donation.osc?.name,
-        packages: donation.packages?.map((dp: any) => dp.package) || []
+        packages: donation.packages?.map((dp: any) => dp.package).filter(Boolean) || []
       }));
       
       setDonations(transformedData);
