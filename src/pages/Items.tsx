@@ -17,7 +17,8 @@ const Items: React.FC = () => {
     name: '',
     description: '',
     unit: '',
-    validity_days: 1
+    validity_days: 1,
+    unit_to_kg: 0
   });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [createdItem, setCreatedItem] = useState<Item | null>(null);
@@ -99,7 +100,8 @@ const Items: React.FC = () => {
             name: formData.name,
             description: formData.description,
             unit: formData.unit,
-            validity_days: formData.validity_days
+            validity_days: formData.validity_days,
+            unit_to_kg: formData.unit === 'unit' ? formData.unit_to_kg : null
           })
           .eq('id', editingItem.id);
 
@@ -107,7 +109,7 @@ const Items: React.FC = () => {
         
         setShowModal(false);
         setEditingItem(null);
-        setFormData({ name: '', description: '', unit: '', validity_days: 1 });
+        setFormData({ name: '', description: '', unit: '', validity_days: 1, unit_to_kg: 0 });
         setNameError('');
         fetchItems();
         showSuccess(
@@ -122,7 +124,8 @@ const Items: React.FC = () => {
             name: formData.name,
             description: formData.description,
             unit: formData.unit,
-            validity_days: formData.validity_days
+            validity_days: formData.validity_days,
+            unit_to_kg: formData.unit === 'unit' ? formData.unit_to_kg : null
           });
 
         if (error) throw error;
@@ -136,7 +139,7 @@ const Items: React.FC = () => {
           .single();
         
         setShowModal(false);
-        setFormData({ name: '', description: '', unit: '', validity_days: 1 });
+        setFormData({ name: '', description: '', unit: '', validity_days: 1, unit_to_kg: 0 });
         setNameError('');
         fetchItems();
         
@@ -159,7 +162,8 @@ const Items: React.FC = () => {
       name: item.name,
       description: item.description || '',
       unit: item.unit,
-      validity_days: item.validity_days
+      validity_days: item.validity_days,
+      unit_to_kg: item.unit_to_kg || 0
     });
     setNameError('');
     setShowModal(true);
@@ -245,6 +249,7 @@ const Items: React.FC = () => {
                 <th className="text-left p-4 font-medium text-gray-900">Descrição</th>
                 <th className="text-left p-4 font-medium text-gray-900">Unidade</th>
                 <th className="text-left p-4 font-medium text-gray-900">Validade (dias)</th>
+                <th className="text-left p-4 font-medium text-gray-900">Kilos por unidade</th>
                 <th className="text-left p-4 font-medium text-gray-900">Ações</th>
               </tr>
             </thead>
@@ -255,6 +260,9 @@ const Items: React.FC = () => {
                   <td className="p-4 text-gray-600">{item.description || '-'}</td>
                   <td className="p-4 text-gray-600">{item.unit}</td>
                   <td className="p-4 text-gray-600">{item.validity_days}</td>
+                  <td className="p-4 text-gray-600">
+                    {item.unit === 'kg' ? '-' : (item.unit_to_kg ? item.unit_to_kg.toFixed(3) : '-')}
+                  </td>
                   <td className="p-4">
                     <div className="flex space-x-2">
                       <button
@@ -354,13 +362,34 @@ const Items: React.FC = () => {
                 />
               </div>
 
+              {formData.unit === 'unit' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Kilos por unidade *
+                  </label>
+                  <input
+                    type="number"
+                    min="0.001"
+                    step="0.001"
+                    required
+                    value={formData.unit_to_kg}
+                    onChange={(e) => setFormData({...formData, unit_to_kg: parseFloat(e.target.value) || 0})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Ex: 0.500"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Quantos quilos representa cada unidade deste item
+                  </p>
+                </div>
+              )}
+
               <div className="flex justify-end space-x-3">
                 <button
                   type="button"
                   onClick={() => {
                     setShowModal(false);
                     setEditingItem(null);
-                    setFormData({ name: '', description: '', unit: '', validity_days: 1 });
+                    setFormData({ name: '', description: '', unit: '', validity_days: 1, unit_to_kg: 0 });
                     setNameError('');
                   }}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800"

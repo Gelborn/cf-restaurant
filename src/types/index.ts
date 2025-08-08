@@ -16,6 +16,7 @@ export interface Item {
   category: string;
   unit: string;
   validity_days: number;
+  unit_to_kg?: number;
 }
 
 export interface Package {
