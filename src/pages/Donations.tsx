@@ -33,17 +33,6 @@ const Donations: React.FC = () => {
     if (!session?.user?.id) return;
     
     try {
-      const { data: restaurant } = await supabase
-        .from('restaurants')
-        .select('id')
-        .eq('user_id', session?.user.id)
-        .single();
-
-      if (!restaurant) {
-        console.error('Restaurant not found for user');
-        return;
-      }
-
       const { data, error } = await supabase
         .from('donations')
         .select(`
@@ -56,7 +45,7 @@ const Donations: React.FC = () => {
             )
           )
         `)
-        .eq('restaurant_id', restaurant.id)
+        .eq('packages.package.restaurant_id', session.user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -256,6 +245,7 @@ const Donations: React.FC = () => {
               </p>
               <div className="flex justify-between text-xs text-gray-600">
                 <span>{pkg.quantity} {pkg.item?.unit}</span>
+                <span>Peso: {pkg.total_kg?.toFixed(3) || '0.000'} kg</span>
                 <span>Vence: {formatTimeRemaining(pkg.expires_at)}</span>
               </div>
             </div>
