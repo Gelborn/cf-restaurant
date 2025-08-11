@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { Plus, Search, Edit2, Trash2, Gift, X, Tag, Printer, Upload, Construction, AlertCircle, CheckCircle } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Gift, X, Tag, Printer, Upload, Construction, AlertCircle, CheckCircle, MapPin, Clock, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -23,7 +23,15 @@ const Packages: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [donationResult, setDonationResult] = useState<{ packagesCount: number } | null>(null);
+  const [donationResult, setDonationResult] = useState<{ 
+    packagesCount: number;
+    osc?: {
+      id: string;
+      name: string;
+      address: string;
+      distance_km: number;
+    };
+  } | null>(null);
   const [toast, setToast] = useState<{ type: 'success' | 'error'; title: string; message: string } | null>(null);
   const [formData, setFormData] = useState({
     item_id: '',
@@ -305,7 +313,8 @@ const Packages: React.FC = () => {
       // Show success modal
       setShowSuccessModal(true);
       setDonationResult({
-        packagesCount: responseData.packages_count || 0
+        packagesCount: responseData.packages_count || 0,
+        osc: responseData.osc
       });
     } catch (error) {
       console.error('Error donating package:', error);
@@ -799,23 +808,63 @@ const Packages: React.FC = () => {
       {/* Success Modal */}
       {showSuccessModal && donationResult && ReactDOM.createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+          <div className="bg-white rounded-lg p-8 w-full max-w-lg">
             <div className="text-center">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
-                <Gift className="h-6 w-6 text-green-600" />
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-6">
+                <Gift className="h-8 w-8 text-green-600" />
               </div>
               
-              <h2 className="text-xl font-bold text-gray-900 mb-2">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
                 Doação Enviada com Sucesso!
               </h2>
               
-              <p className="text-gray-600 mb-4">
-                Todos os pacotes foram enviados para organizações sociais próximas.
+              <p className="text-gray-600 mb-6">
+                Sua oferta de doação foi enviada e agora é só aguardar a resposta!
               </p>
               
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-6">
-                <p className="text-sm text-blue-800">
-                  Você pode acompanhar o status da doação na tela de <strong>Doações</strong>.
+              {/* OSC Information */}
+              {donationResult.osc && (
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-6">
+                  <div className="flex items-center justify-center mb-4">
+                    <div className="bg-blue-100 p-3 rounded-full">
+                      <MapPin className="h-6 w-6 text-blue-600" />
+                    </div>
+                  </div>
+                  
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Organização Social Selecionada
+                  </h3>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Nome da OSC</p>
+                      <p className="font-semibold text-blue-900">{donationResult.osc.name}</p>
+                    </div>
+                    
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Endereço</p>
+                      <p className="text-gray-800">{donationResult.osc.address}</p>
+                    </div>
+                    
+                    <div className="flex items-center justify-center space-x-2 pt-2">
+                      <MapPin className="h-4 w-4 text-green-600" />
+                      <span className="text-sm font-medium text-green-700">
+                        {donationResult.osc.distance_km.toFixed(1)} km de distância
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center justify-center mb-2">
+                  <Clock className="h-5 w-5 text-amber-600 mr-2" />
+                  <p className="text-sm font-medium text-amber-800">
+                    Aguardando Resposta da OSC
+                  </p>
+                </div>
+                <p className="text-xs text-amber-700">
+                  A organização social tem até 24 horas para aceitar ou recusar a doação.
                 </p>
               </div>
               
@@ -825,7 +874,7 @@ const Packages: React.FC = () => {
                     setShowSuccessModal(false);
                     setDonationResult(null);
                   }}
-                  className="flex-1 px-4 py-2 text-gray-600 hover:text-gray-800"
+                  className="flex-1 px-6 py-3 text-gray-600 hover:text-gray-800 font-medium"
                 >
                   Fechar
                 </button>
@@ -835,8 +884,9 @@ const Packages: React.FC = () => {
                     setDonationResult(null);
                     navigate('/donations');
                   }}
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex items-center justify-center space-x-2"
                 >
+                  <Eye className="h-4 w-4" />
                   Ver Doações
                 </button>
               </div>
