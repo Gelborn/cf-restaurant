@@ -24,6 +24,7 @@ interface DonationDetails {
   created_at: string;
   restaurant: string;
   security_code: string;
+  expires_at: string;
   packages: DonationPackage[];
 }
 
@@ -35,6 +36,12 @@ const ConfirmDonation: React.FC = () => {
   const [actionLoading, setActionLoading] = useState<'accept' | 'deny' | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [timeRemaining, setTimeRemaining] = useState<{
+    hours: number;
+    minutes: number;
+    seconds: number;
+    isExpired: boolean;
+  }>({ hours: 0, minutes: 0, seconds: 0, isExpired: false });
 
   useEffect(() => {
     if (code) {
@@ -42,6 +49,32 @@ const ConfirmDonation: React.FC = () => {
     }
   }, [code]);
 
+  // Timer effect
+  useEffect(() => {
+    if (!donation?.expires_at) return;
+
+    const updateTimer = () => {
+      const now = new Date().getTime();
+      const expiry = new Date(donation.expires_at).getTime();
+      const diff = expiry - now;
+
+      if (diff <= 0) {
+        setTimeRemaining({ hours: 0, minutes: 0, seconds: 0, isExpired: true });
+        return;
+      }
+
+      const hours = Math.floor(diff / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      setTimeRemaining({ hours, minutes, seconds, isExpired: false });
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+
+    return () => clearInterval(interval);
+  }, [donation?.expires_at]);
   const fetchDonationDetails = async () => {
     if (!code) return;
 
@@ -153,6 +186,8 @@ const ConfirmDonation: React.FC = () => {
         return 'bg-red-100 text-red-800';
       case 'picked_up':
         return 'bg-green-100 text-green-800';
+      case 'expired':
+        return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -168,6 +203,8 @@ const ConfirmDonation: React.FC = () => {
         return 'Recusada';
       case 'picked_up':
         return 'Coletado!';
+      case 'expired':
+        return 'Expirada';
       default:
         return status;
     }
@@ -183,6 +220,8 @@ const ConfirmDonation: React.FC = () => {
         return <XCircle className="w-5 h-5" />;
       case 'picked_up':
         return <CheckCircle className="w-5 h-5" />;
+      case 'expired':
+        return <XCircle className="w-5 h-5" />;
       default:
         return <Clock className="w-5 h-5" />;
     }
@@ -275,6 +314,114 @@ const ConfirmDonation: React.FC = () => {
 
         {donation && (
           <div className="space-y-6">
+            {/* Countdown Timer - Only show for pending donations */}
+            {donation.status === 'pending' && donation.expires_at && (
+              <div className={`rounded-lg p-6 text-center ${
+                timeRemaining.isExpired 
+                  ? 'bg-red-50 border border-red-200' 
+                  : timeRemaining.hours <= 2 
+                    ? 'bg-orange-50 border border-orange-200' 
+                    : 'bg-blue-50 border border-blue-200'
+              }`}>
+                <div className="flex items-center justify-center mb-4">
+                  <Clock className={`w-8 h-8 mr-3 ${
+                    timeRemaining.isExpired 
+                      ? 'text-red-500' 
+                      : timeRemaining.hours <= 2 
+                        ? 'text-orange-500' 
+                        : 'text-blue-500'
+                  }`} />
+                  <h3 className={`text-xl font-bold ${
+                    timeRemaining.isExpired 
+                      ? 'text-red-800' 
+                      : timeRemaining.hours <= 2 
+                        ? 'text-orange-800' 
+                        : 'text-blue-800'
+                  }`}>
+                    {timeRemaining.isExpired ? 'Tempo Esgotado' : 'Tempo Restante'}
+                  </h3>
+                </div>
+                
+                {timeRemaining.isExpired ? (
+                  <div>
+                    <p className="text-red-700 text-lg font-medium mb-2">
+                      Esta oferta de doação expirou
+                    </p>
+                    <p className="text-red-600 text-sm">
+                      O prazo para resposta foi ultrapassado
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex justify-center items-center space-x-6 mb-4">
+                      <div className="text-center">
+                        <div className={`text-4xl font-bold ${
+                          timeRemaining.hours <= 2 ? 'text-orange-700' : 'text-blue-700'
+                        }`}>
+                          {String(timeRemaining.hours).padStart(2, '0')}
+                        </div>
+                        <div className={`text-sm font-medium ${
+                          timeRemaining.hours <= 2 ? 'text-orange-600' : 'text-blue-600'
+                        }`}>
+                          Horas
+                        </div>
+                      </div>
+                      <div className={`text-3xl font-bold ${
+                        timeRemaining.hours <= 2 ? 'text-orange-700' : 'text-blue-700'
+                      }`}>:</div>
+                      <div className="text-center">
+                        <div className={`text-4xl font-bold ${
+                          timeRemaining.hours <= 2 ? 'text-orange-700' : 'text-blue-700'
+                        }`}>
+                          {String(timeRemaining.minutes).padStart(2, '0')}
+                        </div>
+                        <div className={`text-sm font-medium ${
+                          timeRemaining.hours <= 2 ? 'text-orange-600' : 'text-blue-600'
+                        }`}>
+                          Minutos
+                        </div>
+                      </div>
+                      <div className={`text-3xl font-bold ${
+                        timeRemaining.hours <= 2 ? 'text-orange-700' : 'text-blue-700'
+                      }`}>:</div>
+                      <div className="text-center">
+                        <div className={`text-4xl font-bold ${
+                          timeRemaining.hours <= 2 ? 'text-orange-700' : 'text-blue-700'
+                        }`}>
+                          {String(timeRemaining.seconds).padStart(2, '0')}
+                        </div>
+                        <div className={`text-sm font-medium ${
+                          timeRemaining.hours <= 2 ? 'text-orange-600' : 'text-blue-600'
+                        }`}>
+                          Segundos
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <p className={`text-lg font-medium ${
+                      timeRemaining.hours <= 2 ? 'text-orange-700' : 'text-blue-700'
+                    }`}>
+                      {timeRemaining.hours <= 2 
+                        ? '⚠️ Tempo limitado para responder!' 
+                        : 'Prazo para aceitar ou recusar a doação'
+                      }
+                    </p>
+                    
+                    <p className={`text-sm mt-2 ${
+                      timeRemaining.hours <= 2 ? 'text-orange-600' : 'text-blue-600'
+                    }`}>
+                      Expira em: {new Date(donation.expires_at).toLocaleDateString('pt-BR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
             {/* Donation Header */}
             <div className="bg-white rounded-lg shadow-sm border p-6">
               <div className="flex items-center justify-between mb-4">
@@ -345,7 +492,7 @@ const ConfirmDonation: React.FC = () => {
             </div>
 
             {/* Action Buttons */}
-            {donation.status === 'pending' && (
+            {donation.status === 'pending' && !timeRemaining.isExpired && (
               <div className="bg-white rounded-lg shadow-sm border p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Ação Necessária</h3>
                 <p className="text-gray-600 mb-6">
@@ -374,6 +521,22 @@ const ConfirmDonation: React.FC = () => {
               </div>
             )}
 
+            {/* Expired Message */}
+            {donation.status === 'pending' && timeRemaining.isExpired && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+                <div className="flex items-center mb-4">
+                  <XCircle className="w-6 h-6 text-red-500 mr-3" />
+                  <h3 className="text-lg font-semibold text-red-800">Oferta Expirada</h3>
+                </div>
+                <p className="text-red-700 mb-4">
+                  O prazo para responder a esta oferta de doação foi ultrapassado. 
+                  A doação não está mais disponível para aceite.
+                </p>
+                <p className="text-sm text-red-600">
+                  Entre em contato com o restaurante se ainda tiver interesse nos itens.
+                </p>
+              </div>
+            )}
             {/* Info Footer */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <p className="text-sm text-blue-800">
