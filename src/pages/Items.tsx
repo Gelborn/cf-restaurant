@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Item } from '../types';
 import { useToast } from '../hooks/useToast';
+import { formatNumber } from '../utils/formatters';
 
 const Items: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
@@ -261,7 +262,7 @@ const Items: React.FC = () => {
                   <td className="p-4 text-gray-600">{item.unit}</td>
                   <td className="p-4 text-gray-600">{item.validity_days}</td>
                   <td className="p-4 text-gray-600">
-                    {item.unit === 'kg' ? '-' : (item.unit_to_kg ? item.unit_to_kg.toFixed(3) : '-')}
+                    {item.unit === 'kg' ? '-' : (item.unit_to_kg ? formatNumber(item.unit_to_kg, 3) : '-')}
                   </td>
                   <td className="p-4">
                     <div className="flex space-x-2">

@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Package, Item } from '../types';
+import { formatWeight } from '../utils/formatters';
 
 const Packages: React.FC = () => {
   const navigate = useNavigate();
@@ -498,7 +499,7 @@ const Packages: React.FC = () => {
                 </div>
                 <div className="flex justify-between">
                   <span>Peso total:</span>
-                  <span className="font-medium">{pkg.total_kg?.toFixed(3) || '0.000'} kg</span>
+                  <span className="font-medium">{formatWeight(pkg.total_kg)} kg</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Categoria:</span>
@@ -691,7 +692,7 @@ const Packages: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  value={`${editTotalKg.toFixed(3)} kg`}
+                  value={`${formatWeight(editTotalKg)} kg`}
                   disabled
                   className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-700"
                 />
@@ -993,7 +994,7 @@ const Packages: React.FC = () => {
                     </div>
                     <div>
                       <p className="text-sm text-gray-600 print:text-black font-medium">Peso Total:</p>
-                      <p className="text-lg font-semibold print:text-black">{selectedPackage.total_kg?.toFixed(3) || '0.000'} kg</p>
+                      <p className="text-lg font-semibold print:text-black">{formatWeight(selectedPackage.total_kg)} kg</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600 print:text-black font-medium">Data de Criação:</p>

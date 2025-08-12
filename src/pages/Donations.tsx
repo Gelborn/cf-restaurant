@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { Donation } from '../types';
 import { useToast } from '../hooks/useToast';
+import { formatWeight } from '../utils/formatters';
 
 interface DonationWithPackages extends Donation {
   packages?: any[];
@@ -342,7 +343,7 @@ const Donations: React.FC = () => {
               </p>
               <div className="flex justify-between text-xs text-gray-600">
                 <span>{pkg.quantity} {pkg.item?.unit}</span>
-                <span>Peso: {pkg.total_kg?.toFixed(3) || '0.000'} kg</span>
+                <span>Peso: {formatWeight(pkg.total_kg)} kg</span>
                 <span>Vence: {formatTimeRemaining(pkg.expires_at)}</span>
               </div>
             </div>
