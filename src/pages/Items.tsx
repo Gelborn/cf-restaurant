@@ -17,7 +17,7 @@ const Items: React.FC = () => {
     name: '',
     description: '',
     unit: '',
-    validity_days: 1,
+    validity_days: '' as string | number,
     unit_to_kg: 0
   });
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -109,7 +109,7 @@ const Items: React.FC = () => {
         
         setShowModal(false);
         setEditingItem(null);
-        setFormData({ name: '', description: '', unit: '', validity_days: 1, unit_to_kg: 0 });
+        setFormData({ name: '', description: '', unit: '', validity_days: '', unit_to_kg: 0 });
         setNameError('');
         fetchItems();
         showSuccess(
@@ -139,7 +139,7 @@ const Items: React.FC = () => {
           .single();
         
         setShowModal(false);
-        setFormData({ name: '', description: '', unit: '', validity_days: 1, unit_to_kg: 0 });
+        setFormData({ name: '', description: '', unit: '', validity_days: '', unit_to_kg: 0 });
         setNameError('');
         fetchItems();
         
@@ -357,8 +357,9 @@ const Items: React.FC = () => {
                   min="1"
                   required
                   value={formData.validity_days}
-                  onChange={(e) => setFormData({...formData, validity_days: parseInt(e.target.value)})}
+                  onChange={(e) => setFormData({...formData, validity_days: e.target.value ? parseInt(e.target.value) : ''})}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Ex: 7"
                 />
               </div>
 
@@ -389,7 +390,7 @@ const Items: React.FC = () => {
                   onClick={() => {
                     setShowModal(false);
                     setEditingItem(null);
-                    setFormData({ name: '', description: '', unit: '', validity_days: 1, unit_to_kg: 0 });
+                    setFormData({ name: '', description: '', unit: '', validity_days: '', unit_to_kg: 0 });
                     setNameError('');
                   }}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800"
