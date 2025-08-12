@@ -39,6 +39,10 @@ const Packages: React.FC = () => {
     quantity: 1 as number,
     total_kg: 0 as number
   });
+  const [validationErrors, setValidationErrors] = useState({
+    item_id: '',
+    quantity: ''
+  });
   const [editQuantity, setEditQuantity] = useState(1);
   const [editTotalKg, setEditTotalKg] = useState(0);
   const { session } = useAuth();
@@ -49,6 +53,32 @@ const Packages: React.FC = () => {
     setTimeout(() => setToast(null), 5000);
   };
 
+  const validateForm = () => {
+    const errors = {
+      item_id: '',
+      quantity: ''
+    };
+
+    // Validate item selection
+    if (!formData.item_id) {
+      errors.item_id = 'Item é obrigatório';
+    }
+
+    // Validate quantity
+    if (!formData.quantity || formData.quantity <= 0) {
+      errors.quantity = 'Quantidade é obrigatória e deve ser maior que 0';
+    } else {
+      const selectedItem = items.find(item => item.id === formData.item_id);
+      if (selectedItem?.unit === 'kg' && formData.quantity < 0.001) {
+        errors.quantity = 'Quantidade mínima para kg é 0,001';
+      } else if (selectedItem?.unit === 'unit' && formData.quantity < 1) {
+        errors.quantity = 'Quantidade mínima para unidades é 1';
+      }
+    }
+
+    setValidationErrors(errors);
+    return !Object.values(errors).some(error => error !== '');
+  };
   useEffect(() => {
     fetchPackages();
     fetchItems();
@@ -121,6 +151,11 @@ const Packages: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate form
+    if (!validateForm()) {
+      return;
+    }
+    
     if (!session?.user?.id) {
       console.error('No authenticated user');
       return;
@@ -176,6 +211,7 @@ const Packages: React.FC = () => {
 
       setShowModal(false);
       setFormData({ item_id: '', quantity: 1, total_kg: 0 });
+     setValidationErrors({ item_id: '', quantity: '' });
       fetchPackages();
       
       if (newPackage) {
@@ -580,16 +616,25 @@ const Packages: React.FC = () => {
                   Item
                 </label>
                 <select
-                  required
                   value={formData.item_id}
-                  onChange={(e) => setFormData({...formData, item_id: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  onChange={(e) => {
+                    setFormData({...formData, item_id: e.target.value});
+                    setValidationErrors(prev => ({...prev, item_id: ''}));
+                  }}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:border-transparent ${
+                    validationErrors.item_id 
+                      ? 'border-red-300 focus:ring-red-500' 
+                      : 'border-gray-300 focus:ring-blue-500'
+                  }`}
                 >
                   <option value="">Selecione um item</option>
                   {items.map(item => (
                     <option key={item.id} value={item.id}>{item.name}</option>
                   ))}
                 </select>
+                {validationErrors.item_id && (
+                  <p className="mt-1 text-sm text-red-600">{validationErrors.item_id}</p>
+                )}
               </div>
 
               <div>
@@ -598,14 +643,24 @@ const Packages: React.FC = () => {
                 </label>
                 <input
                   type="number"
-                  min="1"
+                  min={selectedItem?.unit === 'kg' ? '0.001' : '1'}
                   step={selectedItem?.unit === 'kg' ? '0.001' : '1'}
-                  required
                   value={formData.quantity}
-                  onChange={(e) => setFormData({...formData, quantity: selectedItem?.unit === 'kg' ? parseFloat(e.target.value) : parseInt(e.target.value)})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Ex: 0.500"
+                  onChange={(e) => {
+                    const value = selectedItem?.unit === 'kg' ? parseFloat(e.target.value) : parseInt(e.target.value);
+                    setFormData({...formData, quantity: value || 0});
+                    setValidationErrors(prev => ({...prev, quantity: ''}));
+                  }}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:border-transparent ${
+                    validationErrors.quantity 
+                      ? 'border-red-300 focus:ring-red-500' 
+                      : 'border-gray-300 focus:ring-blue-500'
+                  }`}
+                  placeholder={selectedItem?.unit === 'kg' ? 'Ex: 0,5' : 'Ex: 5'}
                 />
+                {validationErrors.quantity && (
+                  <p className="mt-1 text-sm text-red-600">{validationErrors.quantity}</p>
+                )}
               </div>
 
               {selectedItem && formData.quantity > 0 && (
@@ -625,7 +680,11 @@ const Packages: React.FC = () => {
               <div className="flex justify-end space-x-3">
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  onClick={() => {
+                    setShowModal(false);
+                    setFormData({ item_id: '', quantity: 1, total_kg: 0 });
+                    setValidationErrors({ item_id: '', quantity: '' });
+                  }}
                   disabled={actionLoading === 'create'}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50"
                 >
@@ -692,7 +751,7 @@ const Packages: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  value={`${formatWeight(editTotalKg)} kg`}
+                  value={`${formatWeight(formData.total_kg)} kg`}
                   disabled
                   className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-700"
                 />

@@ -24,6 +24,12 @@ const Items: React.FC = () => {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [createdItem, setCreatedItem] = useState<Item | null>(null);
   const [nameError, setNameError] = useState('');
+  const [validationErrors, setValidationErrors] = useState({
+    name: '',
+    unit: '',
+    validity_days: '',
+    unit_to_kg: ''
+  });
   const { session } = useAuth();
   const { showSuccess, showError } = useToast();
 
@@ -69,12 +75,46 @@ const Items: React.FC = () => {
     return !existingItem;
   };
 
+  const validateForm = () => {
+    const errors = {
+      name: '',
+      unit: '',
+      validity_days: '',
+      unit_to_kg: ''
+    };
+
+    // Validate name
+    if (!formData.name.trim()) {
+      errors.name = 'Nome é obrigatório';
+    } else if (!validateItemName(formData.name)) {
+      errors.name = 'Este item já existe';
+    }
+
+    // Validate unit
+    if (!formData.unit) {
+      errors.unit = 'Unidade é obrigatória';
+    }
+
+    // Validate validity_days
+    if (!formData.validity_days || formData.validity_days === '') {
+      errors.validity_days = 'Validade é obrigatória';
+    } else if (typeof formData.validity_days === 'number' && formData.validity_days < 1) {
+      errors.validity_days = 'Validade deve ser pelo menos 1 dia';
+    }
+
+    // Validate unit_to_kg for unit type
+    if (formData.unit === 'unit' && (!formData.unit_to_kg || formData.unit_to_kg <= 0)) {
+      errors.unit_to_kg = 'Peso por unidade é obrigatório e deve ser maior que 0';
+    }
+
+    setValidationErrors(errors);
+    return !Object.values(errors).some(error => error !== '');
+  };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate item name
-    if (!validateItemName(formData.name)) {
-      setNameError('Este item já existe');
+    // Validate form
+    if (!validateForm()) {
       return;
     }
     
@@ -111,7 +151,7 @@ const Items: React.FC = () => {
         setShowModal(false);
         setEditingItem(null);
         setFormData({ name: '', description: '', unit: '', validity_days: '', unit_to_kg: 0 });
-        setNameError('');
+       setValidationErrors({ name: '', unit: '', validity_days: '', unit_to_kg: '' });
         fetchItems();
         showSuccess(
           'Item atualizado!',
@@ -141,7 +181,7 @@ const Items: React.FC = () => {
         
         setShowModal(false);
         setFormData({ name: '', description: '', unit: '', validity_days: '', unit_to_kg: 0 });
-        setNameError('');
+       setValidationErrors({ name: '', unit: '', validity_days: '', unit_to_kg: '' });
         fetchItems();
         
         if (newItem) {
@@ -166,7 +206,7 @@ const Items: React.FC = () => {
       validity_days: item.validity_days,
       unit_to_kg: item.unit_to_kg || 0
     });
-    setNameError('');
+   setValidationErrors({ name: '', unit: '', validity_days: '', unit_to_kg: '' });
     setShowModal(true);
   };
 
@@ -302,20 +342,19 @@ const Items: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  required
                   value={formData.name}
                   onChange={(e) => {
                     setFormData({...formData, name: e.target.value});
-                    setNameError('');
+                    setValidationErrors(prev => ({...prev, name: ''}));
                   }}
                   className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:border-transparent ${
-                    nameError 
+                    validationErrors.name 
                       ? 'border-red-300 focus:ring-red-500' 
                       : 'border-gray-300 focus:ring-blue-500'
                   }`}
                 />
-                {nameError && (
-                  <p className="mt-1 text-sm text-red-600">{nameError}</p>
+                {validationErrors.name && (
+                  <p className="mt-1 text-sm text-red-600">{validationErrors.name}</p>
                 )}
               </div>
 
@@ -337,16 +376,25 @@ const Items: React.FC = () => {
                   Unidade
                 </label>
                 <select
-                  required
                   value={formData.unit}
-                  onChange={(e) => setFormData({...formData, unit: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  onChange={(e) => {
+                    setFormData({...formData, unit: e.target.value});
+                    setValidationErrors(prev => ({...prev, unit: ''}));
+                  }}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:border-transparent ${
+                    validationErrors.unit 
+                      ? 'border-red-300 focus:ring-red-500' 
+                      : 'border-gray-300 focus:ring-blue-500'
+                  }`}
                 >
                   <option value="">Selecione uma unidade</option>
                   {units.map(unit => (
                     <option key={unit.value} value={unit.value}>{unit.label}</option>
                   ))}
                 </select>
+                {validationErrors.unit && (
+                  <p className="mt-1 text-sm text-red-600">{validationErrors.unit}</p>
+                )}
               </div>
 
               <div>
@@ -356,12 +404,21 @@ const Items: React.FC = () => {
                 <input
                   type="number"
                   min="1"
-                  required
                   value={formData.validity_days}
-                  onChange={(e) => setFormData({...formData, validity_days: e.target.value ? parseInt(e.target.value) : ''})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  onChange={(e) => {
+                    setFormData({...formData, validity_days: e.target.value ? parseInt(e.target.value) : ''});
+                    setValidationErrors(prev => ({...prev, validity_days: ''}));
+                  }}
+                  className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:border-transparent ${
+                    validationErrors.validity_days 
+                      ? 'border-red-300 focus:ring-red-500' 
+                      : 'border-gray-300 focus:ring-blue-500'
+                  }`}
                   placeholder="Ex: 7"
                 />
+                {validationErrors.validity_days && (
+                  <p className="mt-1 text-sm text-red-600">{validationErrors.validity_days}</p>
+                )}
               </div>
 
               {formData.unit === 'unit' && (
@@ -373,12 +430,21 @@ const Items: React.FC = () => {
                     type="number"
                     min="0.001"
                     step="0.001"
-                    required
                     value={formData.unit_to_kg}
-                    onChange={(e) => setFormData({...formData, unit_to_kg: parseFloat(e.target.value) || 0})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Ex: 0.500"
+                    onChange={(e) => {
+                      setFormData({...formData, unit_to_kg: parseFloat(e.target.value) || 0});
+                      setValidationErrors(prev => ({...prev, unit_to_kg: ''}));
+                    }}
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:border-transparent ${
+                      validationErrors.unit_to_kg 
+                        ? 'border-red-300 focus:ring-red-500' 
+                        : 'border-gray-300 focus:ring-blue-500'
+                    }`}
+                    placeholder="Ex: 0,5"
                   />
+                  {validationErrors.unit_to_kg && (
+                    <p className="mt-1 text-sm text-red-600">{validationErrors.unit_to_kg}</p>
+                  )}
                   <p className="text-xs text-gray-500 mt-1">
                     Quantos quilos representa cada unidade deste item
                   </p>
@@ -392,7 +458,7 @@ const Items: React.FC = () => {
                     setShowModal(false);
                     setEditingItem(null);
                     setFormData({ name: '', description: '', unit: '', validity_days: '', unit_to_kg: 0 });
-                    setNameError('');
+                    setValidationErrors({ name: '', unit: '', validity_days: '', unit_to_kg: '' });
                   }}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800"
                 >
