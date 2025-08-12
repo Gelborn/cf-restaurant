@@ -9,6 +9,7 @@ import { useToast } from '../hooks/useToast';
 interface DonationWithPackages extends Donation {
   packages?: any[];
   osc_name?: string;
+  pickup_deadline_at?: string;
 }
 
 const Donations: React.FC = () => {
@@ -187,6 +188,39 @@ const Donations: React.FC = () => {
     }
   };
 
+  const formatPickupDeadline = (deadlineAt: string) => {
+    const now = new Date();
+    const deadline = new Date(deadlineAt);
+    const diffMs = deadline.getTime() - now.getTime();
+    
+    if (diffMs <= 0) return { text: 'Prazo vencido', isExpired: true, isUrgent: false };
+    
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const diffMinutes = Math.floor((diffMs % (1000 * 60)) / (1000 * 60));
+    
+    const isUrgent = diffMs <= 6 * 60 * 60 * 1000; // 6 horas ou menos
+    
+    if (diffDays > 0) {
+      return { 
+        text: `${diffDays}d ${diffHours}h restantes`, 
+        isExpired: false, 
+        isUrgent: false 
+      };
+    } else if (diffHours > 0) {
+      return { 
+        text: `${diffHours}h ${diffMinutes}min restantes`, 
+        isExpired: false, 
+        isUrgent 
+      };
+    } else {
+      return { 
+        text: `${diffMinutes}min restantes`, 
+        isExpired: false, 
+        isUrgent: true 
+      };
+    }
+  };
   const filteredDonations = donations.filter(donation => {
     const matchesSearch = donation.security_code.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || donation.status === statusFilter;
@@ -214,6 +248,57 @@ const Donations: React.FC = () => {
             <p className="text-sm font-medium text-blue-700">
               OSC Destino → {donation.osc_name}
             </p>
+          </div>
+        )}
+        
+        {/* Pickup Deadline Counter - Only for accepted donations */}
+        {donation.status === 'accepted' && donation.pickup_deadline_at && (
+          <div className="mb-3">
+            {(() => {
+              const deadline = formatPickupDeadline(donation.pickup_deadline_at);
+              return (
+                <div className={`rounded-lg p-3 border ${
+                  deadline.isExpired 
+                    ? 'bg-red-50 border-red-200' 
+                    : deadline.isUrgent 
+                      ? 'bg-orange-50 border-orange-200' 
+                      : 'bg-blue-50 border-blue-200'
+                }`}>
+                  <div className="flex items-center space-x-2 mb-1">
+                    <Clock className={`w-4 h-4 ${
+                      deadline.isExpired 
+                        ? 'text-red-500' 
+                        : deadline.isUrgent 
+                          ? 'text-orange-500' 
+                          : 'text-blue-500'
+                    }`} />
+                    <p className={`text-xs font-medium ${
+                      deadline.isExpired 
+                        ? 'text-red-700' 
+                        : deadline.isUrgent 
+                          ? 'text-orange-700' 
+                          : 'text-blue-700'
+                    }`}>
+                      Tempo limite para a OSC retirar a doação
+                    </p>
+                  </div>
+                  <p className={`text-sm font-bold ${
+                    deadline.isExpired 
+                      ? 'text-red-800' 
+                      : deadline.isUrgent 
+                        ? 'text-orange-800' 
+                        : 'text-blue-800'
+                  }`}>
+                    {deadline.text}
+                  </p>
+                  {deadline.isExpired && (
+                    <p className="text-xs text-red-600 mt-1">
+                      A OSC não retirou a doação no prazo estabelecido
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         )}
       </div>
