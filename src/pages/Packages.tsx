@@ -80,6 +80,7 @@ const Packages: React.FC = () => {
     setValidationErrors(errors);
     return !Object.values(errors).some(error => error !== '');
   };
+  
   useEffect(() => {
     fetchPackages();
     fetchItems();
@@ -212,7 +213,7 @@ const Packages: React.FC = () => {
 
       setShowModal(false);
       setFormData({ item_id: '', quantity: 1, total_kg: 0 });
-     setValidationErrors({ item_id: '', quantity: '' });
+      setValidationErrors({ item_id: '', quantity: '' });
       fetchPackages();
       
       if (newPackage) {
@@ -323,7 +324,7 @@ const Packages: React.FC = () => {
       console.log('📥 Function response:', { responseData, error });
 
       if (error) {
-        const status = error.context.status
+        const status = error.context.status;
         console.log('🔍 Status:', status);
         // Handle specific error codes
         switch (status) {
@@ -752,7 +753,7 @@ const Packages: React.FC = () => {
                 </label>
                 <input
                   type="text"
-                  value={`${formatWeight(formData.total_kg)} kg`}
+                  value={`${formatWeight(editTotalKg)} kg`}
                   disabled
                   className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-700"
                 />
@@ -948,7 +949,7 @@ const Packages: React.FC = () => {
                   className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium flex items-center justify-center space-x-2"
                 >
                   <Eye className="h-4 w-4" />
-                  Ver Doações
+                  <span>Ver Doações</span>
                 </button>
               </div>
             </div>
@@ -1217,7 +1218,7 @@ const Packages: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               )}
             </div>
