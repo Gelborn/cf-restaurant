@@ -19,6 +19,7 @@ const Packages: React.FC = () => {
   const [showSuccessCreateModal, setShowSuccessCreateModal] = useState(false);
   const [showLabelModal, setShowLabelModal] = useState(false);
   const [showComingSoonModal, setShowComingSoonModal] = useState(false);
+  const [labelFormat, setLabelFormat] = useState<'vertical' | 'square' | 'horizontal'>('square');
   const [createdPackage, setCreatedPackage] = useState<Package | null>(null);
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -1003,11 +1004,24 @@ const Packages: React.FC = () => {
       {/* Label Modal */}
       {showLabelModal && selectedPackage && ReactDOM.createPortal(
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg w-full max-w-2xl">
+          <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto">
             {/* Modal Header */}
             <div className="flex justify-between items-center p-6 border-b print:hidden">
               <h2 className="text-xl font-bold">Etiqueta do Pacote</h2>
               <div className="flex space-x-2">
+                {/* Format Selection */}
+                <div className="flex items-center space-x-2 mr-4">
+                  <label className="text-sm font-medium text-gray-700">Formato:</label>
+                  <select
+                    value={labelFormat}
+                    onChange={(e) => setLabelFormat(e.target.value as 'vertical' | 'square' | 'horizontal')}
+                    className="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="vertical">Vertical</option>
+                    <option value="square">Quadrado</option>
+                    <option value="horizontal">Horizontal</option>
+                  </select>
+                </div>
                 <button
                   onClick={printLabel}
                   className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center space-x-2"
@@ -1026,59 +1040,186 @@ const Packages: React.FC = () => {
             
             {/* Printable Label */}
             <div className="p-8 print:p-4">
-              <div className="border-2 border-gray-800 rounded-lg p-6 print:border-black print:rounded-none">
-                {/* Header */}
-                <div className="text-center mb-6 print:mb-4">
-                  <h1 className="text-2xl font-bold text-gray-900 print:text-black">Arcos Dourados</h1>
-                  <p className="text-gray-600 print:text-black">Etiqueta do Pacote</p>
-                </div>
-                
-                {/* Main Info */}
-                <div className="space-y-4 print:space-y-2">
-                  <div className="text-center">
-                    <p className="text-sm text-gray-600 print:text-black">Código da Etiqueta</p>
-                    <p className="text-3xl font-mono font-bold text-blue-600 print:text-black bg-blue-50 print:bg-transparent px-4 py-2 rounded-md print:border print:border-black">
+              {/* Vertical Format */}
+              {labelFormat === 'vertical' && (
+                <div className="border-2 border-gray-800 rounded-lg p-6 print:border-black print:rounded-none max-w-sm mx-auto">
+                  {/* Header */}
+                  <div className="text-center mb-4 print:mb-3">
+                    <h1 className="text-xl font-bold text-gray-900 print:text-black">Arcos Dourados</h1>
+                    <p className="text-sm text-gray-600 print:text-black">Etiqueta do Pacote</p>
+                  </div>
+                  
+                  {/* Code */}
+                  <div className="text-center mb-4 print:mb-3">
+                    <p className="text-xs text-gray-600 print:text-black mb-1">Código da Etiqueta</p>
+                    <p className="text-2xl font-mono font-bold text-blue-600 print:text-black bg-blue-50 print:bg-transparent px-3 py-2 rounded-md print:border print:border-black">
                       {selectedPackage.label_code}
                     </p>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4 print:gap-2">
-                    <div>
-                      <p className="text-sm text-gray-600 print:text-black font-medium">Item:</p>
-                      <p className="text-lg font-semibold print:text-black">{selectedPackage.item?.name}</p>
+                  {/* Info */}
+                  <div className="space-y-3 print:space-y-2">
+                    <div className="text-center">
+                      <p className="text-xs text-gray-600 print:text-black font-medium">Item</p>
+                      <p className="text-sm font-semibold print:text-black">{selectedPackage.item?.name}</p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-600 print:text-black font-medium">Quantidade:</p>
-                      <p className="text-lg font-semibold print:text-black">{selectedPackage.quantity} {selectedPackage.item?.unit}</p>
+                    <div className="text-center">
+                      <p className="text-xs text-gray-600 print:text-black font-medium">Quantidade</p>
+                      <p className="text-sm font-semibold print:text-black">{selectedPackage.quantity} {selectedPackage.item?.unit}</p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-600 print:text-black font-medium">Peso Total:</p>
-                      <p className="text-lg font-semibold print:text-black">{formatWeight(selectedPackage.total_kg)} kg</p>
+                    <div className="text-center">
+                      <p className="text-xs text-gray-600 print:text-black font-medium">Peso Total</p>
+                      <p className="text-sm font-semibold print:text-black">{formatWeight(selectedPackage.total_kg)} kg</p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-600 print:text-black font-medium">Data de Criação:</p>
-                      <p className="text-lg print:text-black">{new Date(selectedPackage.created_at).toLocaleDateString('pt-BR')}</p>
+                    <div className="text-center">
+                      <p className="text-xs text-gray-600 print:text-black font-medium">Criado em</p>
+                      <p className="text-sm print:text-black">{new Date(selectedPackage.created_at).toLocaleDateString('pt-BR')}</p>
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-600 print:text-black font-medium">Data de Validade:</p>
-                      <p className="text-lg print:text-black">{new Date(selectedPackage.expires_at).toLocaleDateString('pt-BR')}</p>
+                    <div className="text-center">
+                      <p className="text-xs text-gray-600 print:text-black font-medium">Validade</p>
+                      <p className="text-sm print:text-black">{new Date(selectedPackage.expires_at).toLocaleDateString('pt-BR')}</p>
                     </div>
+                    {selectedPackage.item?.category && (
+                      <div className="text-center">
+                        <p className="text-xs text-gray-600 print:text-black font-medium">Categoria</p>
+                        <p className="text-sm print:text-black">{selectedPackage.item.category}</p>
+                      </div>
+                    )}
                   </div>
                   
-                  {selectedPackage.item?.category && (
-                    <div className="text-center pt-4 print:pt-2">
-                      <p className="text-sm text-gray-600 print:text-black">Categoria: <span className="font-medium">{selectedPackage.item.category}</span></p>
+                  {/* Footer */}
+                  <div className="text-center mt-4 print:mt-3 pt-3 print:pt-2 border-t border-gray-200 print:border-black">
+                    <p className="text-xs text-gray-500 print:text-black">
+                      Plataforma de Doações
+                    </p>
+                    <p className="text-xs text-gray-500 print:text-black">
+                      {new Date().toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Square Format (Current) */}
+              {labelFormat === 'square' && (
+                <div className="border-2 border-gray-800 rounded-lg p-6 print:border-black print:rounded-none max-w-lg mx-auto">
+                  {/* Header */}
+                  <div className="text-center mb-6 print:mb-4">
+                    <h1 className="text-2xl font-bold text-gray-900 print:text-black">Arcos Dourados</h1>
+                    <p className="text-gray-600 print:text-black">Etiqueta do Pacote</p>
+                  </div>
+                  
+                  {/* Main Info */}
+                  <div className="space-y-4 print:space-y-2">
+                    <div className="text-center">
+                      <p className="text-sm text-gray-600 print:text-black">Código da Etiqueta</p>
+                      <p className="text-3xl font-mono font-bold text-blue-600 print:text-black bg-blue-50 print:bg-transparent px-4 py-2 rounded-md print:border print:border-black">
+                        {selectedPackage.label_code}
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 print:gap-2">
+                      <div>
+                        <p className="text-sm text-gray-600 print:text-black font-medium">Item:</p>
+                        <p className="text-lg font-semibold print:text-black">{selectedPackage.item?.name}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600 print:text-black font-medium">Quantidade:</p>
+                        <p className="text-lg font-semibold print:text-black">{selectedPackage.quantity} {selectedPackage.item?.unit}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600 print:text-black font-medium">Peso Total:</p>
+                        <p className="text-lg font-semibold print:text-black">{formatWeight(selectedPackage.total_kg)} kg</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600 print:text-black font-medium">Data de Criação:</p>
+                        <p className="text-lg print:text-black">{new Date(selectedPackage.created_at).toLocaleDateString('pt-BR')}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600 print:text-black font-medium">Data de Validade:</p>
+                        <p className="text-lg print:text-black">{new Date(selectedPackage.expires_at).toLocaleDateString('pt-BR')}</p>
+                      </div>
+                    </div>
+                    
+                    {selectedPackage.item?.category && (
+                      <div className="text-center pt-4 print:pt-2">
+                        <p className="text-sm text-gray-600 print:text-black">Categoria: <span className="font-medium">{selectedPackage.item.category}</span></p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Footer */}
+                  <div className="text-center mt-6 print:mt-4 pt-4 print:pt-2 border-t border-gray-200 print:border-black">
+                    <p className="text-xs text-gray-500 print:text-black">
+                      Plataforma de Doações - {new Date().toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Horizontal Format */}
+              {labelFormat === 'horizontal' && (
+                <div className="border-2 border-gray-800 rounded-lg p-4 print:border-black print:rounded-none">
+                  <div className="flex items-center space-x-6 print:space-x-4">
+                    {/* Left Section - Code */}
+                    <div className="flex-shrink-0 text-center">
+                      <h1 className="text-lg font-bold text-gray-900 print:text-black mb-1">Arcos Dourados</h1>
+                      <p className="text-xs text-gray-600 print:text-black mb-2">Código da Etiqueta</p>
+                      <p className="text-2xl font-mono font-bold text-blue-600 print:text-black bg-blue-50 print:bg-transparent px-3 py-2 rounded-md print:border print:border-black">
+                        {selectedPackage.label_code}
+                      </p>
+                    </div>
+                    
+                    {/* Divider */}
+                    <div className="border-l border-gray-300 print:border-black h-24"></div>
+                    
+                    {/* Middle Section - Item Info */}
+                    <div className="flex-1">
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
+                        <div>
+                          <p className="text-xs text-gray-600 print:text-black font-medium">Item</p>
+                          <p className="text-sm font-semibold print:text-black">{selectedPackage.item?.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-600 print:text-black font-medium">Quantidade</p>
+                          <p className="text-sm font-semibold print:text-black">{selectedPackage.quantity} {selectedPackage.item?.unit}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-600 print:text-black font-medium">Peso Total</p>
+                          <p className="text-sm font-semibold print:text-black">{formatWeight(selectedPackage.total_kg)} kg</p>
+                        </div>
+                        {selectedPackage.item?.category && (
+                          <div>
+                            <p className="text-xs text-gray-600 print:text-black font-medium">Categoria</p>
+                            <p className="text-sm print:text-black">{selectedPackage.item.category}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Divider */}
+                    <div className="border-l border-gray-300 print:border-black h-24"></div>
+                    
+                    {/* Right Section - Dates */}
+                    <div className="flex-shrink-0 text-right">
+                      <div className="space-y-2">
+                        <div>
+                          <p className="text-xs text-gray-600 print:text-black font-medium">Criado em</p>
+                          <p className="text-sm print:text-black">{new Date(selectedPackage.created_at).toLocaleDateString('pt-BR')}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-600 print:text-black font-medium">Validade</p>
+                          <p className="text-sm print:text-black">{new Date(selectedPackage.expires_at).toLocaleDateString('pt-BR')}</p>
+                        </div>
+                        <div className="pt-2 print:pt-1 border-t border-gray-200 print:border-black">
+                          <p className="text-xs text-gray-500 print:text-black">
+                            {new Date().toLocaleDateString('pt-BR')}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
-                
-                {/* Footer */}
-                <div className="text-center mt-6 print:mt-4 pt-4 print:pt-2 border-t border-gray-200 print:border-black">
-                  <p className="text-xs text-gray-500 print:text-black">
-                    Plataforma de Doações - {new Date().toLocaleDateString('pt-BR')}
-                  </p>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
