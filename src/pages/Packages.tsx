@@ -286,27 +286,17 @@ const Packages: React.FC = () => {
     package: pkg, 
     showDiscardButton = false 
   }) => {
-    const timeInfo = formatTimeRemaining(pkg.expires_at);
-    
     return (
       <div className="bg-white rounded-lg shadow-sm border p-4">
-        <div className="flex justify-between items-start mb-3">
-          <div className="flex-1">
-            <h3 className="font-semibold text-gray-900 mb-1">{pkg.item?.name}</h3>
-            <p className="text-sm text-gray-600 mb-2">Código: {pkg.label_code}</p>
-            <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs border ${getStatusColor(pkg.status)}`}>
-              <span>{getStatusText(pkg.status)}</span>
-            </div>
-          </div>
-          {showDiscardButton && (
-            <button
-              onClick={() => handleDiscard(pkg.id)}
-              className="text-red-600 hover:text-red-800 p-1"
-              title="Descartar pacote"
-            >
-              <Trash2 size={16} />
-            </button>
-          )}
+        {/* Status no topo */}
+        <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs border mb-3 ${getStatusColor(pkg.status)}`}>
+          <span>{getStatusText(pkg.status)}</span>
+        </div>
+
+        {/* Conteúdo principal */}
+        <div className="mb-4">
+          <h3 className="font-semibold text-gray-900 mb-1">{pkg.item?.name}</h3>
+          <p className="text-sm text-gray-600 mb-3">Código: {pkg.label_code}</p>
         </div>
 
         <div className="space-y-2 text-sm">
@@ -322,22 +312,39 @@ const Packages: React.FC = () => {
             <span className="text-gray-600">Criado:</span>
             <span>{new Date(pkg.created_at).toLocaleDateString('pt-BR')}</span>
           </div>
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between">
             <span className="text-gray-600">Validade:</span>
-            <div className="flex items-center space-x-1">
-              {timeInfo.isExpired && <AlertTriangle size={14} className="text-red-500" />}
-              {timeInfo.isUrgent && !timeInfo.isExpired && <Clock size={14} className="text-orange-500" />}
-              <span className={`font-medium ${
-                timeInfo.isExpired 
-                  ? 'text-red-600' 
-                  : timeInfo.isUrgent 
-                    ? 'text-orange-600' 
-                    : 'text-gray-900'
-              }`}>
-                {timeInfo.text}
-              </span>
-            </div>
+            <span className="font-medium">{new Date(pkg.expires_at).toLocaleDateString('pt-BR')}</span>
           </div>
+        </div>
+
+        {/* Ações na parte inferior */}
+        <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between">
+          {showDiscardButton ? (
+            <>
+              <button
+                onClick={() => handleDiscard(pkg.id)}
+                className="text-red-600 hover:text-red-800 text-sm font-medium"
+              >
+                Remover
+              </button>
+              <button
+                onClick={() => setShowComingSoonModal(true)}
+                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              >
+                Ver etiqueta
+              </button>
+            </>
+          ) : (
+            <div className="w-full flex justify-end">
+              <button
+                onClick={() => setShowComingSoonModal(true)}
+                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              >
+                Ver etiqueta
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -407,9 +414,14 @@ const Packages: React.FC = () => {
         <div className="space-y-4">
           <div className="flex items-center space-x-2">
             <Package className="text-green-600" size={24} />
-            <h2 className="text-xl font-bold text-green-700">
-              Em Estoque ({inStockPackages.length})
-            </h2>
+            <div>
+              <h2 className="text-xl font-bold text-green-700">
+                Em Estoque ({inStockPackages.length})
+              </h2>
+              <p className="text-sm text-green-600">
+                Disponíveis para doação
+              </p>
+            </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
