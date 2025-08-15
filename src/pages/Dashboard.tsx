@@ -221,7 +221,6 @@ const Dashboard: React.FC = () => {
                   <div 
                     className="flex items-end justify-center space-x-1 w-full flex-1"
                     style={{ height: '150px' }}
-                    style={{ height: '170px' }}
                   >
                     <div
                       className="w-3 bg-gradient-to-t from-blue-500 to-blue-600 rounded-t-sm"
